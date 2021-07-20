@@ -2,7 +2,7 @@ import { http } from './config'
 
 export default	{
 
-	salvar:(supplier)=>{
+	salvar:(supplier) => {
 		return http.post('supplier',supplier);
   },
     

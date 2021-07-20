@@ -9,16 +9,18 @@
 
     <div style="margin-top: 20px;" class="container">
 
-      <form @submit.prevent="salvar">
-
+    <form @submit.prevent="salvar">
           <label>Razão Social</label>
           <input type="text" placeholder="Razão Social" v-model="supplier.razaoSocial">
           <label>Nome Fantasia</label>
           <input type="text" placeholder="Fantasia" v-model="supplier.nomeFantasia">
           <label>Cnpj</label>
-          <input type="text" placeholder="Cnpj" v-model="supplier.cnpj">
+          <input type="text" placeholder="Cnpj" v-model="supplier.cnpj" v-mask="'##.###.###/####-##'">
           <label>CEP</label>
-          <input type="text" placeholder="CEP" v-model="supplier.cep">
+          <input type="text" placeholder="CEP" v-model="supplier.cep" v-mask="'##.###-###'">
+          <button style="margin-top: 15px; margin-bottom: 15px;" class="waves-effect waves-light btn-small">Consulta CEP<i class="material-icons left">save</i></button>          
+          <br>
+
           <label>Localidade</label>
           <input type="text" placeholder="Localidade" v-model="supplier.localidade">
           <label>Número</label>
@@ -70,13 +72,13 @@
 </template>
 <script>
 
-  import Supplier from './services/suppliers'
+  import Supplier from './services/suppliers.js'
 
   export default {
-    
-    data() {
+    name: 'app',
+    data () {
       return {
-        supplier: {
+        supplier:{
           razaoSocial: '',
           nomeFantasia: '',
           cnpj: '',
@@ -86,60 +88,79 @@
           complemento: '',
           bairro: ''
         },
-        suppliers: []
+        suppliers: [],
+        errors: []
       }
     },
 
     mounted(){
-      Supplier.listar().then(resposta => {
-        this.supplier = resposta.data
-      })
-    },    
+      this.listar();
+      
+    },
 
     methods:{
+      
+      listar(){
+        Supplier.listar().then(resposta => {
+          this.supplier = resposta.data
+        }).catch(e => {
+          console.log(e)
+        })
+      },
 
-        salvar() {
-         Supplier.salvar(this.supplier).then(resposta => {             
-             alert('Salvo com sucesso')             
-         })
+      salvar(){
+
+        if(!this.suppliers.id){
+
+          Supplier.salvar(this.supplier).then(resposta => {
+            this.supplier = {}
+            alert('Cadastrado com sucesso!')
+            this.listar()
+            this.errors = {}
+          }).catch(e => {
+            this.errors = e.response.data.errors
+          })
+
+        }else{
+
+          Supplier.atualizar(this.supplier).then(resposta => {
+            this.supplier = {}
+            this.errors = {}
+            alert('Atualizado com sucesso!')
+            this.listar()
+          }).catch(e => {
+            this.errors = e.response.data.errors
+          })
 
         }
-    
+        
 
-      // salvar(){
+      },
 
-      // if(!this.supplier.id){
+      editar(supplier){
+        this.supplier = supplier
+      },
 
-      //   Supplier.salvar(this.supplier).then(resposta => {
-      //     this.supplier = {}
-      //     alert('Cadastrado com sucesso!')
-      //     this.listar()
-      //     this.errors = {}
-      //   }).catch(e => {
-      //     this.errors = e.response.data.errors
-      //   })
+      remover(supplier){
 
-      // }else{
+        if(confirm('Deseja excluir o fornecedor?')){
 
-      //   Supplier.atualizar(this.supplier).then(resposta => {
-      //     this.supplier = {}
-      //     this.errors = {}
-      //     alert('Atualizado com sucesso!')
-      //     this.listar()
-      //   }).catch(e => {
-      //     this.errors = e.response.data.errors
-      //   })
+          Supplier.apagar(supplier).then(resposta => {
+            this.listar()
+            this.errors = {}
+          }).catch(e => {
+            this.errors = e.response.data.errors
+          })
 
-      // }
-      
+        }
 
-    //},        
-     
+      }
     }
 
+  }  
 
+  
 
-  }
 
 </script>
 
